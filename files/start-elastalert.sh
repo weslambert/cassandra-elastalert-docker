@@ -57,31 +57,31 @@ sed -i -e"s|stderr_logfile=.*log|stderr_logfile=${LOG_DIR}/elastalert_stderr.log
 # Modify the start-command.
 sed -i -e"s|python elastalert.py|python -m elastalert.elastalert --config ${ELASTALERT_CONFIG}|g" ${ELASTALERT_SUPERVISOR_CONF}; \
 
-# Elastalert large partition rule configuration:
+# Elastalert IDS rule configuration:
 # Set the Elasticsearch host that Elastalert is to query.
-sed -i -e"s|^es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+sed -i -e"s|^es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
 # Set the port used by Elasticsearch at the above address.
-sed -i -e"s|^es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+sed -i -e"s|^es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
 # Set the index name by Elasticsearch.
-sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+#sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
 # Set the slack webhook url.
-sed -i -e"s|^slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+#sed -i -e"s|^slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
-# Elastalert exception rule configuration:
+# Elastalert BRO_CONN rule configuration:
 # Set the Elasticsearch host that Elastalert is to query.
-sed -i -e"s|^es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/exception.yaml; \
+sed -i -e"s|^es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
 # Set the port used by Elasticsearch at the above address.
-sed -i -e"s|^es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/exception.yaml; \
+sed -i -e"s|^es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
 # Set the index name by Elasticsearch.
-sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/exception.yaml; \
+#sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
 # Set the slack webhook url.
-sed -i -e"s|^slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/exception.yaml; \
+#sed -i -e"s|^slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
 echo "Starting Elastalert..."
 exec supervisord -c ${ELASTALERT_SUPERVISOR_CONF} -n

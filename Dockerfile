@@ -1,11 +1,11 @@
 # Elastalert Docker image running on Centos7.
-# This image is especially for monitoring Cassandra logs
+# This image is especially for monitoring logs from Security Onion on Elastic
 #
 # The WORKDIR instructions are deliberately left, as it is recommended to use WORKDIR over the cd command.
 
 FROM centos:centos7
 
-MAINTAINER Wenyu Chang
+MAINTAINER Wes Lambert
 
 # Set this environment variable to true to set timezone on container start.
 ENV SET_CONTAINER_TIMEZONE false
@@ -14,7 +14,7 @@ ENV SET_CONTAINER_TIMEZONE false
 ENV CONTAINER_TIMEZONE UTC
 
 # URL from which to download Elastalert.
-ENV ELASTALERT_URL https://github.com/WenyuChang/elastalert/archive/master.zip
+ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/master.zip
 
 # Directory holding configuration for Elastalert and Supervisor.
 ENV CONFIG_DIR /etc/elastalert/conf
@@ -38,24 +38,24 @@ ENV ELASTALERT_HOME /opt/${ELASTALERT_DIRECTORY_NAME}
 ENV ELASTALERT_SUPERVISOR_CONF ${CONFIG_DIR}/elastalert_supervisord.conf
 
 # Alias, DNS or IP of Elasticsearch host to be queried by Elastalert. Set in default Elasticsearch configuration file.
-ENV ELASTICSEARCH_HOST elasticsearchhost
+ENV ELASTICSEARCH_HOST elasticsearch
 
 # Port on above Elasticsearch host. Set in default Elasticsearch configuration file.
 ENV ELASTICSEARCH_PORT 9200
 
-# ElasticSearch index name for Cassandra logs
-ENV ELASTICSEARCH_CASSANDRA_INDEX cassandra-*
+# ElasticSearch index name for alert logs
+ENV ELASTICSEARCH_LOGSTASH_INDEX logstash-ids*
 
-# Slack webhook url. Default is Wenyu's Slack
-ENV SLACK_WEBHOOK_URL https://hooks.slack.com/services/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
+# Slack webhook url
+ENV SLACK_WEBHOOK_URL https://hooks.slack.com/services/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
 
 WORKDIR /opt
 
 # Copy the script used to launch the Elastalert when a container is started.
 COPY ./files/start-elastalert.sh /opt/
 COPY ./files/elastalert_config.conf ${ELASTALERT_CONFIG}
-COPY ./files/rule-large-partition.yaml ${RULES_DIRECTORY}/large-partition.yaml
-COPY ./files/rule-exception.yaml ${RULES_DIRECTORY}/exception.yaml
+COPY ./files/ids.yaml ${RULES_DIRECTORY}/ids.yaml
+COPY ./files/bro_conn.yaml ${RULES_DIRECTORY}/bro_conn.yaml
 
 # Install software required for Elastalert and NTP for time synchronization.
 RUN yum install -y unzip wget ntp.x86_64 openssl-devel.x86_64 openssl.x86_64 libffi.x86_64 libffi-devel.x86_64 python-devel.x86_64 gcc.x86_64 compat-gcc-44.x86_64 libgcc.x86_64 tzdata.noarch; \
@@ -116,29 +116,26 @@ RUN pip uninstall twilio --yes; \
 
 # Elastalert large partition rule configuration:
     # Set the Elasticsearch host that Elastalert is to query.
-    sed -i -e"s|es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+    #sed -i -e"s|es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
     # Set the port used by Elasticsearch at the above address.
-    sed -i -e"s|es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+    #sed -i -e"s|es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
     # Set the index name by Elasticsearch.
-    sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+    #sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_LOGSTASH_INDEX}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
     # Set the slack webhook url.
-    sed -i -e"s|slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/large-partition.yaml; \
+    #sed -i -e"s|slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/ids.yaml; \
 
 # Elastalert exception rule configuration:
-    # Set the Elasticsearch host that Elastalert is to query.
-    sed -i -e"s|es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/exception.yaml; \
+     #Set the Elasticsearch host that Elastalert is to query.
+    #sed -i -e"s|es_host: [[:print:]]*|es_host: ${ELASTICSEARCH_HOST}|g" ${RULES_DIRECTORY}/bro-conn.yaml; \
 
-    # Set the port used by Elasticsearch at the above address.
-    sed -i -e"s|es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/exception.yaml; \
+     #Set the port used by Elasticsearch at the above address.
+    #sed -i -e"s|es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
     # Set the index name by Elasticsearch.
-    sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_CASSANDRA_INDEX}|g" ${RULES_DIRECTORY}/exception.yaml; \
-
-    # Set the slack webhook url.
-    sed -i -e"s|slack_webhook_url: [[:print:]]*|slack_webhook_url: ${SLACK_WEBHOOK_URL}|g" ${RULES_DIRECTORY}/exception.yaml; \
+    #sed -i -e"s|^index: [[:print:]]*|index: ${ELASTICSEARCH_LOGSTASH_INDEX}|g" ${RULES_DIRECTORY}/bro_conn.yaml; \
 
 # Copy the Elastalert configuration file to Elastalert home directory to be used when creating index first time an Elastalert container is launched.
     cp ${ELASTALERT_CONFIG} ${ELASTALERT_HOME}/config.yaml; \
