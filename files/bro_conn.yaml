@@ -47,6 +47,4 @@ filter:
 #email:
 #- "root@localhost"
 alert:
-- "slack":
-    slack_webhook_url: "https://hooks.slack.com/services/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"
-
+- "debug"
