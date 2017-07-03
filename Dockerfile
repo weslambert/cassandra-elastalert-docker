@@ -48,8 +48,6 @@ WORKDIR /opt
 # Copy the script used to launch the Elastalert when a container is started.
 COPY ./files/start-elastalert.sh /opt/
 COPY ./files/elastalert_config.conf ${ELASTALERT_CONFIG}
-COPY ./files/ids.yaml ${RULES_DIRECTORY}/ids.yaml
-COPY ./files/bro_conn.yaml ${RULES_DIRECTORY}/bro_conn.yaml
 
 # Install software required for Elastalert and NTP for time synchronization.
 RUN yum install -y unzip wget ntp.x86_64 openssl-devel.x86_64 openssl.x86_64 libffi.x86_64 libffi-devel.x86_64 python-devel.x86_64 gcc.x86_64 compat-gcc-44.x86_64 libgcc.x86_64 tzdata.noarch; \
