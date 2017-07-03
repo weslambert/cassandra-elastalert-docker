@@ -1,7 +1,4 @@
-# Elastalert Docker image running on Centos7.
-# This image is especially for monitoring logs from Security Onion on Elastic
-#
-# The WORKDIR instructions are deliberately left, as it is recommended to use WORKDIR over the cd command.
+# Security Onion Elastalert Docker image running on Centos7.
 
 FROM centos:centos7
 
