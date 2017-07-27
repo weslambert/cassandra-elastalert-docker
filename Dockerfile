@@ -40,11 +40,15 @@ ENV ELASTICSEARCH_HOST elasticsearch
 # Port on above Elasticsearch host. Set in default Elasticsearch configuration file.
 ENV ELASTICSEARCH_PORT 9200
 
+# Add ElastAlert user
+RUN useradd -ms /bin/bash elastalert
+
 WORKDIR /opt
 
 # Copy the script used to launch the Elastalert when a container is started.
 COPY ./files/start-elastalert.sh /opt/
 COPY ./files/elastalert_config.conf ${ELASTALERT_CONFIG}
+COPY ./files/elastalert_supervisord.conf ${ELASTALERT_SUPERVISOR_CONF} 
 
 # Install software required for Elastalert and NTP for time synchronization.
 RUN yum install -y unzip wget ntp.x86_64 openssl-devel.x86_64 openssl.x86_64 libffi.x86_64 libffi-devel.x86_64 python-devel.x86_64 gcc.x86_64 compat-gcc-44.x86_64 libgcc.x86_64 tzdata.noarch; \
@@ -79,9 +83,16 @@ RUN pip uninstall twilio --yes; \
     mkdir -p ${RULES_DIRECTORY}; \
     mkdir -p ${LOG_DIR}; \
     mkdir -p /var/empty; \
+    mkdir -p /var/run/elastalert; \
 
-# Copy default configuration files to configuration directory.
-    cp ${ELASTALERT_HOME}/supervisord.conf.example ${ELASTALERT_SUPERVISOR_CONF}; \
+# Define perms for ElastAlert
+    chown -R elastalert:elastalert ${CONFIG_DIR}; \
+    chown -R elastalert:elastalert ${RULES_DIRECTORY}; \
+    chown -R elastalert:elastalert ${LOG_DIR}; \
+    chown -R elastalert:elastalert ${ELASTALERT_HOME}; \
+    chown -R elastalert:elastalert /var/run/elastalert/; \
+    chown elastalert:elastalert /opt/start-elastalert.sh; \
+    chown elastalert:elastalert /usr/bin/supervisord; \
 
 # Elastalert configuration:
     # Set the rule directory in the Elastalert config file to external rules directory.
@@ -94,6 +105,10 @@ RUN pip uninstall twilio --yes; \
     sed -i -e"s|es_port: [0-9]*|es_port: ${ELASTICSEARCH_PORT}|g" ${ELASTALERT_CONFIG}; \
 
 # Elastalert Supervisor configuration:
+    # Configure Supervisor to run as ElastAlert user
+#    sed -i "/\[supervisord\]/a user=elastalert" ${ELASTALERT_SUPERVISOR_CONF}; \
+#    sed -i "/\[program:elastalert\]/a user=elastalert" ${ELASTALERT_SUPERVISOR_CONF}; \
+    
     # Redirect Supervisor log output to a file in the designated logs directory.
     sed -i -e"s|logfile=.*log|logfile=${LOG_DIR}/elastalert_supervisord.log|g" ${ELASTALERT_SUPERVISOR_CONF}; \
 
@@ -111,7 +126,10 @@ RUN pip uninstall twilio --yes; \
     supervisord -c ${ELASTALERT_SUPERVISOR_CONF}
 
 # Define mount points.
-VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
+#VOLUME [ "${CONFIG_DIR}", "${RULES_DIRECTORY}", "${LOG_DIR}"]
+
+# Switch to ElastAlert user
+USER elastalert
 
 # Launch Elastalert when a container is started.
 CMD ["/opt/start-elastalert.sh"]
