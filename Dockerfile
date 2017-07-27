@@ -1,6 +1,6 @@
 # Security Onion Elastalert Docker image running on Centos7.
 
-FROM centos7
+FROM centos:7
 
 MAINTAINER Wes Lambert
 
